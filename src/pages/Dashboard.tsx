@@ -5,9 +5,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import { useWhatsAppInstances } from "@/hooks/useWhatsAppInstances";
+import { useConversations } from "@/hooks/useConversations";
+import { useActivityLogs } from "@/hooks/useActivityLogs";
 
 const Dashboard = () => {
   const { settings, updateSettings, isLoading, isUpdating } = useUserSettings();
+  const { instances } = useWhatsAppInstances();
+  const { conversations } = useConversations();
+  const { logActivity } = useActivityLogs();
   const [botPrompt, setBotPrompt] = useState(
     "Você é um assistente inteligente e prestativo. Responda sempre de forma educada e objetiva."
   );
@@ -20,6 +26,11 @@ const Dashboard = () => {
 
   const handleSavePrompt = async () => {
     updateSettings({ bot_prompt: botPrompt });
+    
+    logActivity({
+      action: "BOT_PROMPT_UPDATED",
+      description: "Prompt do bot foi atualizado"
+    });
   };
 
   if (isLoading) {
@@ -32,6 +43,9 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  const connectedInstances = instances?.filter(i => i.status === 'connected').length || 0;
+  const totalConversations = conversations?.length || 0;
 
   return (
     <div className="space-y-6">
@@ -77,9 +91,15 @@ const Dashboard = () => {
                 <span className="text-green-600 font-medium">Ativo</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Conexões:</span>
+                <span className="text-gray-600">Instâncias Conectadas:</span>
                 <span className="text-blue-600 font-medium">
-                  {settings?.connection_status === 'connected' ? '1 ativa' : '0 ativas'}
+                  {connectedInstances}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total de Conversas:</span>
+                <span className="text-purple-600 font-medium">
+                  {totalConversations}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -99,7 +119,7 @@ const Dashboard = () => {
           <CardContent className="space-y-3">
             <Button variant="outline" className="w-full justify-start" asChild>
               <Link to="/connections">
-                🔌 Ver Conexões
+                🔌 Gerenciar Conexões
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start" asChild>
@@ -108,7 +128,10 @@ const Dashboard = () => {
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start" disabled>
-              📜 Histórico de Conversas (em breve)
+              💬 Histórico de Conversas (em breve)
+            </Button>
+            <Button variant="outline" className="w-full justify-start" disabled>
+              📊 Relatórios (em breve)
             </Button>
           </CardContent>
         </Card>
