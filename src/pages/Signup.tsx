@@ -1,32 +1,47 @@
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { signUp, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulação de cadastro - em produção, usar Supabase
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast({
-        title: "Conta criada com sucesso!",
-        description: "Redirecionando para o dashboard...",
-      });
-      // Redirecionamento será implementado com Supabase
-      window.location.href = "/dashboard";
+      const { error } = await signUp(email, password);
+      
+      if (error) {
+        toast({
+          title: "Erro no cadastro",
+          description: error.message || "Tente novamente mais tarde.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Conta criada com sucesso!",
+          description: "Verifique seu e-mail para confirmar a conta.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Erro no cadastro",

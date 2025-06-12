@@ -4,6 +4,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Bot, Menu, Settings, Wifi, BarChart3, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,6 +14,8 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const { signOut } = useAuth();
+  const { toast } = useToast();
 
   const navigation = [
     { name: "Bot", href: "/dashboard", icon: Bot },
@@ -20,6 +24,22 @@ const Layout = ({ children }: LayoutProps) => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no logout",
+        description: "Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -50,11 +70,9 @@ const Layout = ({ children }: LayoutProps) => {
       </nav>
 
       <div className="p-4 border-t">
-        <Button variant="outline" className="w-full justify-start" asChild>
-          <Link to="/login">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
-          </Link>
+        <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
+          <LogOut className="h-4 w-4 mr-2" />
+          Sair
         </Button>
       </div>
     </div>
